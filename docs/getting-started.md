@@ -34,6 +34,7 @@ chmod +x install.sh && ./install.sh
 - ✅ 创建 12 个 Agent Workspace（`~/.openclaw/workspace-*`）
 - ✅ 写入各省部 SOUL.md 人格文件
 - ✅ 注册 Agent 及权限矩阵到 `openclaw.json`
+- ✅ 预置消息队列扩容参数（提升 Telegram 高峰稳定性）
 - ✅ 配置旨意数据清洗规则
 - ✅ 构建 React 前端到 `dashboard/dist/`（需 Node.js 18+）
 - ✅ 初始化数据目录

@@ -165,6 +165,31 @@ for ag in AGENTS:
         print(f'  ~ exists: {ag_id} (skipped)')
 
 agents_cfg['list'] = agents_list
+
+# Widen runtime throughput defaults for multi-agent bursts.
+# Keep user customizations when they are already higher.
+agent_defaults = agents_cfg.setdefault('defaults', {})
+current_max = agent_defaults.get('maxConcurrent')
+if not isinstance(current_max, int) or current_max < 8:
+    agent_defaults['maxConcurrent'] = 8
+    print('  ~ agents.defaults.maxConcurrent => 8')
+
+sub_cfg = agent_defaults.setdefault('subagents', {})
+sub_max = sub_cfg.get('maxConcurrent')
+if not isinstance(sub_max, int) or sub_max < 16:
+    sub_cfg['maxConcurrent'] = 16
+    print('  ~ agents.defaults.subagents.maxConcurrent => 16')
+
+messages_cfg = cfg.setdefault('messages', {})
+queue_cfg = messages_cfg.setdefault('queue', {})
+queue_cfg['mode'] = 'steer-backlog'
+queue_cfg.setdefault('byChannel', {})['telegram'] = 'steer-backlog'
+queue_cfg['debounceMs'] = 300
+queue_cfg.setdefault('debounceMsByChannel', {})['telegram'] = 300
+queue_cfg['cap'] = 60
+queue_cfg['drop'] = 'summarize'
+print('  ~ messages.queue tuned for telegram bursts')
+
 cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2))
 print(f'Done: {added} agents added')
 PYEOF

@@ -263,6 +263,7 @@ chmod +x install.sh && ./install.sh
 - ✅ 创建全量 Agent Workspace（含太子/吏部/早朝，兼容历史 main）
 - ✅ 写入各省部 SOUL.md（角色人格 + 工作流规则 + 数据清洗规范）
 - ✅ 注册 Agent 及权限矩阵到 `openclaw.json`
+- ✅ 预置消息队列扩容参数（Telegram 高峰更顺畅，减少卡住）
 - ✅ 构建 React 前端（需 Node.js 18+，如未安装则跳过）
 - ✅ 初始化数据目录 + 首次数据同步
 - ✅ 重启 Gateway 使配置生效

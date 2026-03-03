@@ -203,6 +203,7 @@ The installer automatically:
 - Creates workspaces for all departments (`~/.openclaw/workspace-*`, including Crown Prince/HR/Briefing)
 - Writes SOUL.md personality files for each department
 - Registers agents + permission matrix in `openclaw.json`
+- Applies queue/concurrency defaults for smoother Telegram burst handling
 - Initializes data directory + first sync
 - Restarts Gateway
 
