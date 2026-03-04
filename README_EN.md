@@ -1,11 +1,11 @@
 <h1 align="center">⚔️ Edict · Multi-Agent Orchestration</h1>
 
 <p align="center">
-  <strong>I modeled an AI multi-agent system after China's 1,300-year-old imperial governance.<br>Turns out, ancient bureaucracy understood separation of powers better than modern AI frameworks.</strong>
+  <strong>I modeled an AI multi-agent system after Sui/Tang governance design.<br>Turns out, ancient bureaucracy understood separation of powers better than modern AI frameworks.</strong>
 </p>
 
 <p align="center">
-  <sub>12 AI agents (11 business roles + 1 compatibility role) form the Three Departments & Six Ministries: Crown Prince triages, Planning proposes, Review vetoes, Dispatch assigns, Ministries execute.<br>Built-in <b>institutional review gates</b> that CrewAI doesn't have. A <b>real-time dashboard</b> that AutoGen doesn't have.</sub>
+  <sub>12 AI agents (11 business roles + 1 compatibility role) form the Three Departments & Six Ministries: Crown Prince triages, Planning drafts, Review vetoes, Dispatch assigns, Ministries execute (parallel at the execution layer).<br>Built-in <b>institutional review gates</b> that CrewAI doesn't have. A <b>real-time dashboard</b> that AutoGen doesn't have.</sub>
 </p>
 
 <p align="center">
@@ -61,6 +61,8 @@ You (Emperor) → Crown Prince (Triage) → Planning Dept → Review Dept → Di
 ```
 
 This isn't a cute metaphor. It's **real separation of powers** for AI:
+
+Historical alignment: the system was founded in **Sui** and matured in **Tang**. The Three Departments are not fully parallel peers; they form a policy chain (**draft -> review/veto -> dispatch**). Parallelism mainly happens in ministry execution.
 
 - **Crown Prince (太子)** triages messages — casual chat gets auto-replied, real commands become tasks
 - **Planning (中书省)** breaks your command into actionable sub-tasks
