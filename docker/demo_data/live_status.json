@@ -496,11 +496,11 @@
     },
     {
       "id": "JJC-ZHONGSHU-001",
-      "title": "中书省：并行流程规划",
+      "title": "中书省：决策链流程规划",
       "official": "中书令",
       "org": "中书省",
       "state": "Done",
-      "now": "已完成：三省六部并行流程规划",
+      "now": "已完成：三省串联审议 + 诸部并行执行流程规划",
       "eta": "已完成 2026-02-23 10:27",
       "block": "无",
       "output": "/Users/bingsen/clawd/junjichu-v2/docs/三省六部-OpenClaw实施指南-实装版-v1.md",
@@ -1437,7 +1437,7 @@
     {
       "at": "2026-02-23 10:05:17",
       "official": "中书令",
-      "task": "中书省：并行流程规划",
+      "task": "中书省：决策链流程规划",
       "out": "/Users/bingsen/clawd/junjichu-v2/docs/三省六部-OpenClaw实施指南-实装版-v1.md",
       "qa": "通过"
     },
