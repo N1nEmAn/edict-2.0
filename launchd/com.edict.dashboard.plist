@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.edict.dashboard</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>__REPO_DIR__/dashboard/server.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>__REPO_DIR__</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/edict-dashboard.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/edict-dashboard.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>EDICT_DATA_DIR</key>
+        <string>__REPO_DIR__/data</string>
+    </dict>
+</dict>
+</plist>
