@@ -102,7 +102,9 @@ create_workspaces() {
         cp "$ws/SOUL.md" "$ws/SOUL.md.bak.$(date +%Y%m%d-%H%M%S)"
         warn "已备份旧 SOUL.md → $ws/SOUL.md.bak.*"
       fi
-      sed "s|__REPO_DIR__|$REPO_DIR|g" "$REPO_DIR/agents/$agent/SOUL.md" > "$ws/SOUL.md"
+      # 使用 printf 转义避免 sed 特殊字符问题
+      ESCAPED_REPO_DIR=$(printf '%s\n' "$REPO_DIR" | sed 's/[&/\]/\\&/g')
+      sed "s|__REPO_DIR__|$ESCAPED_REPO_DIR|g" "$REPO_DIR/agents/$agent/SOUL.md" > "$ws/SOUL.md"
     fi
     log "Workspace 已创建: $ws"
   done
@@ -117,6 +119,11 @@ create_workspaces() {
 3. 需要协作时，回复尚书省请求转派，不跨部直连。
 4. 涉及删除/外发动作必须明确标注并等待批准。
 AGENTS_EOF
+  done
+
+  # 写入项目数据目录配置，让脚本知道数据存放位置
+  for agent in "${AGENTS[@]}"; do
+    echo "EDICT_DATA_DIR=$REPO_DIR/data" > "$OC_HOME/workspace-$agent/.edict_env"
   done
 }
 

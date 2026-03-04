@@ -41,7 +41,7 @@ class TaskService:
         assignee_org: str | None = None,
         creator: str = "emperor",
         tags: list[str] | None = None,
-        initial_state: TaskState = TaskState.TAIZI,
+        initial_state: TaskState = TaskState.Taizi,
         meta: dict | None = None,
     ) -> Task:
         """创建任务并发布 task.created 事件。"""
@@ -53,7 +53,7 @@ class TaskService:
             title=title,
             description=description,
             priority=priority,
-            state=initial_state,
+            state=initial_state.value,  # 存储为字符串
             assignee_org=assignee_org,
             creator=creator,
             tags=tags or [],
@@ -70,6 +70,8 @@ class TaskService:
             todos=[],
             scheduler=None,
             meta=meta or {},
+            created_at=now,
+            updated_at=now,
         )
         self.db.add(task)
         await self.db.flush()
@@ -104,22 +106,23 @@ class TaskService:
     ) -> Task:
         """执行状态流转，校验合法性。"""
         task = await self._get_task(task_id)
-        old_state = task.state
+        old_state_str = task.state
+        old_state = TaskState(old_state_str) if old_state_str else None
 
         # 校验合法流转
         allowed = STATE_TRANSITIONS.get(old_state, set())
         if new_state not in allowed:
             raise ValueError(
-                f"Invalid transition: {old_state.value} → {new_state.value}. "
+                f"Invalid transition: {old_state_str} → {new_state.value}. "
                 f"Allowed: {[s.value for s in allowed]}"
             )
 
-        task.state = new_state
+        task.state = new_state.value  # 存储为字符串
         task.updated_at = datetime.now(timezone.utc)
 
         # 记入 flow_log
         flow_entry = {
-            "from": old_state.value,
+            "from": old_state_str,
             "to": new_state.value,
             "agent": agent,
             "reason": reason,
@@ -138,14 +141,14 @@ class TaskService:
             producer=agent,
             payload={
                 "task_id": str(task_id),
-                "from": old_state.value,
+                "from": old_state_str,
                 "to": new_state.value,
                 "reason": reason,
             },
         )
 
         await self.db.commit()
-        log.info(f"Task {task_id} state: {old_state.value} → {new_state.value} by {agent}")
+        log.info(f"Task {task_id} state: {old_state_str} → {new_state.value} by {agent}")
         return task
 
     # ── 派发请求 ──
@@ -167,7 +170,7 @@ class TaskService:
                 "task_id": str(task_id),
                 "agent": target_agent,
                 "message": message,
-                "state": task.state.value,
+                "state": task.state,  # 已经是字符串
             },
         )
         log.info(f"Dispatch requested: task {task_id} → agent {target_agent}")
@@ -231,7 +234,7 @@ class TaskService:
         stmt = select(Task)
         conditions = []
         if state is not None:
-            conditions.append(Task.state == state)
+            conditions.append(Task.state == state.value)  # 比较字符串
         if assignee_org is not None:
             conditions.append(Task.assignee_org == assignee_org)
         if priority is not None:
@@ -249,7 +252,8 @@ class TaskService:
         completed_tasks = {}
         for t in tasks:
             d = t.to_dict()
-            if t.state in TERMINAL_STATES:
+            # t.state 是字符串，比较时用枚举值
+            if t.state in {s.value for s in TERMINAL_STATES}:
                 completed_tasks[str(t.task_id)] = d
             else:
                 active_tasks[str(t.task_id)] = d
@@ -262,7 +266,7 @@ class TaskService:
     async def count_tasks(self, state: TaskState | None = None) -> int:
         stmt = select(func.count(Task.task_id))
         if state is not None:
-            stmt = stmt.where(Task.state == state)
+            stmt = stmt.where(Task.state == state.value)  # 比较字符串
         result = await self.db.execute(stmt)
         return result.scalar_one()
 

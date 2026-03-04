@@ -12,13 +12,9 @@ from datetime import datetime, timezone
 from sqlalchemy import (
     Column,
     DateTime,
-    Enum,
-    Index,
     String,
     Text,
-    Boolean,
-    Integer,
-    text,
+    Index,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
@@ -79,64 +75,47 @@ class Task(Base):
     """三省六部任务表。"""
     __tablename__ = "tasks"
 
-    id = Column(String(32), primary_key=True, comment="任务ID, e.g. JJC-20260301-001")
-    title = Column(Text, nullable=False, comment="任务标题")
-    state = Column(Enum(TaskState, name="task_state"), nullable=False, default=TaskState.Taizi, index=True)
-    org = Column(String(32), nullable=False, default="太子", comment="当前执行部门")
-    official = Column(String(32), default="", comment="责任官员")
-    now = Column(Text, default="", comment="当前进展描述")
-    eta = Column(String(64), default="-", comment="预计完成时间")
-    block = Column(Text, default="无", comment="阻塞原因")
-    output = Column(Text, default="", comment="最终产出")
-    priority = Column(String(16), default="normal", comment="优先级")
-    archived = Column(Boolean, default=False, index=True)
-
-    # JSONB 灵活字段
-    flow_log = Column(JSONB, default=list, comment="流转日志 [{at, from, to, remark}]")
-    progress_log = Column(JSONB, default=list, comment="进展日志 [{at, agent, text, todos}]")
-    todos = Column(JSONB, default=list, comment="子任务 [{id, title, status, detail}]")
-    scheduler = Column(JSONB, default=dict, comment="调度器元数据")
-    template_id = Column(String(64), default="", comment="模板ID")
-    template_params = Column(JSONB, default=dict, comment="模板参数")
-    ac = Column(Text, default="", comment="验收标准")
-    target_dept = Column(String(64), default="", comment="目标部门")
-
-    # 时间戳
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
-        nullable=False,
-    )
+    task_id = Column(UUID(as_uuid=True), primary_key=True, server_default=None)
+    trace_id = Column(String(64), nullable=False)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, server_default="")
+    priority = Column(String(10), server_default="中")
+    state = Column(String(20), nullable=False, server_default="Taizi")
+    assignee_org = Column(String(50), nullable=True)
+    creator = Column(String(50), server_default="emperor")
+    tags = Column(JSONB, server_default="[]")
+    flow_log = Column(JSONB, server_default="[]")
+    progress_log = Column(JSONB, server_default="[]")
+    todos = Column(JSONB, server_default="[]")
+    scheduler = Column(JSONB, nullable=True)
+    meta = Column(JSONB, server_default="{}")
+    created_at = Column(DateTime(timezone=True), server_default=None)
+    updated_at = Column(DateTime(timezone=True), server_default=None)
 
     __table_args__ = (
-        Index("ix_tasks_state_archived", "state", "archived"),
-        Index("ix_tasks_updated_at", "updated_at"),
+        Index("ix_tasks_state", "state"),
+        Index("ix_tasks_trace_id", "trace_id"),
+        Index("ix_tasks_assignee_org", "assignee_org"),
+        Index("ix_tasks_created_at", "created_at"),
     )
 
     def to_dict(self) -> dict:
-        """序列化为 API 响应格式（兼容旧 live_status 格式）。"""
+        """序列化为 API 响应格式。"""
         return {
-            "id": self.id,
+            "task_id": str(self.task_id) if self.task_id else "",
+            "trace_id": self.trace_id or "",
             "title": self.title,
-            "state": self.state.value if self.state else "",
-            "org": self.org,
-            "official": self.official,
-            "now": self.now,
-            "eta": self.eta,
-            "block": self.block,
-            "output": self.output,
-            "priority": self.priority,
-            "archived": self.archived,
+            "description": self.description or "",
+            "priority": self.priority or "中",
+            "state": self.state or "Taizi",
+            "assignee_org": self.assignee_org,
+            "creator": self.creator or "emperor",
+            "tags": self.tags or [],
             "flow_log": self.flow_log or [],
             "progress_log": self.progress_log or [],
             "todos": self.todos or [],
-            "templateId": self.template_id,
-            "templateParams": self.template_params or {},
-            "ac": self.ac,
-            "targetDept": self.target_dept,
-            "_scheduler": self.scheduler or {},
-            "createdAt": self.created_at.isoformat() if self.created_at else "",
-            "updatedAt": self.updated_at.isoformat() if self.updated_at else "",
+            "scheduler": self.scheduler or {},
+            "meta": self.meta or {},
+            "created_at": self.created_at.isoformat() if self.created_at else "",
+            "updated_at": self.updated_at.isoformat() if self.updated_at else "",
         }

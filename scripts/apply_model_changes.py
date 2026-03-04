@@ -2,12 +2,12 @@
 """应用 data/pending_model_changes.json → openclaw.json，并重启 Gateway"""
 import json, pathlib, subprocess, datetime, shutil, logging, glob
 from file_lock import atomic_json_write, atomic_json_read
+from utils import find_data_dir
 
 log = logging.getLogger('model_change')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(name)s] %(message)s', datefmt='%H:%M:%S')
 
-BASE = pathlib.Path(__file__).parent.parent
-DATA = BASE / 'data'
+DATA = find_data_dir()
 OPENCLAW_CFG = pathlib.Path.home() / '.openclaw' / 'openclaw.json'
 PENDING = DATA / 'pending_model_changes.json'
 CHANGE_LOG = DATA / 'model_change_log.json'

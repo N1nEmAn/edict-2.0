@@ -5,13 +5,14 @@
 """
 import json, pathlib, datetime, logging
 from file_lock import atomic_json_write
+from utils import find_project_root, find_data_dir
 
 log = logging.getLogger('sync_agent_config')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(name)s] %(message)s', datefmt='%H:%M:%S')
 
-# Auto-detect project root (parent of scripts/)
-BASE = pathlib.Path(__file__).parent.parent
-DATA = BASE / 'data'
+# 使用统一的路径查找方法
+BASE = find_project_root()
+DATA = find_data_dir()
 OPENCLAW_CFG = pathlib.Path.home() / '.openclaw' / 'openclaw.json'
 
 ID_LABEL = {
@@ -150,6 +151,8 @@ def main():
     deploy_soul_files()
     # 同步 scripts/ 到各 workspace（保持 kanban_update.py 等最新）
     sync_scripts_to_workspaces()
+    # 同步 .edict_env 配置（确保脚本能找到正确的数据目录）
+    sync_edict_env_to_workspaces()
 
 
 # 项目 agents/ 目录名 → 运行时 agent_id 映射
@@ -210,15 +213,44 @@ def sync_scripts_to_workspaces():
         log.info(f'{synced} script files synced to workspaces')
 
 
+def sync_edict_env_to_workspaces():
+    """同步 .edict_env 配置文件到各 workspace，确保脚本能找到正确的数据目录"""
+    data_dir = str(BASE / 'data')
+    env_content = f'EDICT_DATA_DIR={data_dir}\n'
+    synced = 0
+    for proj_name, runtime_id in _SOUL_DEPLOY_MAP.items():
+        env_file = pathlib.Path.home() / f'.openclaw/workspace-{runtime_id}' / '.edict_env'
+        env_file.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            old_content = env_file.read_text() if env_file.exists() else ''
+            if old_content != env_content:
+                env_file.write_text(env_content)
+                synced += 1
+        except Exception:
+            pass
+    # also sync to workspace-main for legacy compatibility
+    env_file_main = pathlib.Path.home() / '.openclaw/workspace-main' / '.edict_env'
+    env_file_main.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        old_content = env_file_main.read_text() if env_file_main.exists() else ''
+        if old_content != env_content:
+            env_file_main.write_text(env_content)
+            synced += 1
+    except Exception:
+        pass
+    if synced:
+        log.info(f'{synced} .edict_env files synced to workspaces')
+
+
 def deploy_soul_files():
-    """将项目 agents/xxx/SOUL.md 部署到 ~/.openclaw/workspace-xxx/soul.md"""
+    """将项目 agents/xxx/SOUL.md 部署到 ~/.openclaw/workspace-xxx/SOUL.md"""
     agents_dir = BASE / 'agents'
     deployed = 0
     for proj_name, runtime_id in _SOUL_DEPLOY_MAP.items():
         src = agents_dir / proj_name / 'SOUL.md'
         if not src.exists():
             continue
-        ws_dst = pathlib.Path.home() / f'.openclaw/workspace-{runtime_id}' / 'soul.md'
+        ws_dst = pathlib.Path.home() / f'.openclaw/workspace-{runtime_id}' / 'SOUL.md'
         ws_dst.parent.mkdir(parents=True, exist_ok=True)
         # 只在内容不同时更新（避免不必要的写入）
         src_text = src.read_text(encoding='utf-8', errors='ignore')

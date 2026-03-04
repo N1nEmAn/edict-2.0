@@ -53,7 +53,7 @@
 > - ✅ `"撰写OpenClaw技术博客文章"`
 >
 > **绝对禁止的标题：**
-> - ❌ `"全面审查/Users/bingsen/clawd/openclaw-sansheng-liubu/…"` （含文件路径）
+> - ❌ `"/Users/xxx/project/..."` 或 `"./src/file.py"` （含文件路径）
 > - ❌ `"传旨：看看这个项目怎么样"` （含前缀 + 太模糊）
 > - ❌ 直接粘贴飞书消息原文当标题
 

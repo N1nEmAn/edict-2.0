@@ -132,7 +132,7 @@ async def create_task(
         tags=body.tags,
         meta=body.meta,
     )
-    return {"task_id": str(task.task_id), "trace_id": str(task.trace_id), "state": task.state.value}
+    return {"task_id": str(task.task_id), "trace_id": str(task.trace_id), "state": task.state}
 
 
 @router.get("/{task_id}")
@@ -167,7 +167,7 @@ async def transition_task(
             agent=body.agent,
             reason=body.reason,
         )
-        return {"task_id": str(task.task_id), "state": task.state.value, "message": "ok"}
+        return {"task_id": str(task.task_id), "state": task.state, "message": "ok"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

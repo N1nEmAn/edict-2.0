@@ -24,9 +24,34 @@
 """
 import json, pathlib, datetime, sys, subprocess, logging, os, re
 
-_BASE = pathlib.Path(__file__).resolve().parent.parent
-TASKS_FILE = _BASE / 'data' / 'tasks_source.json'
-REFRESH_SCRIPT = _BASE / 'scripts' / 'refresh_live_data.py'
+def _find_data_dir() -> pathlib.Path:
+    """查找数据目录，优先级：环境变量 > .edict_env 配置 > 脚本相对路径"""
+    # 1. 环境变量
+    env_dir = os.environ.get('EDICT_DATA_DIR')
+    if env_dir:
+        return pathlib.Path(env_dir)
+
+    # 2. 从当前目录向上查找 .edict_env 文件
+    cwd = pathlib.Path.cwd()
+    for p in [cwd] + list(cwd.parents):
+        env_file = p / '.edict_env'
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                if line.startswith('EDICT_DATA_DIR='):
+                    return pathlib.Path(line.split('=', 1)[1].strip())
+
+    # 3. 脚本所在目录的上两级（兼容在项目 scripts/ 目录下运行）
+    script_parent = pathlib.Path(__file__).resolve().parent.parent
+    if (script_parent / 'data').exists():
+        return script_parent / 'data'
+
+    # 4. 默认：当前目录下的 data/
+    return pathlib.Path.cwd() / 'data'
+
+DATA_DIR = _find_data_dir()
+TASKS_FILE = DATA_DIR / 'tasks_source.json'
+# refresh_live_data.py 始终使用项目根目录的脚本
+REFRESH_SCRIPT = pathlib.Path(__file__).resolve().parent.parent / 'scripts' / 'refresh_live_data.py'
 
 log = logging.getLogger('kanban')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(name)s] %(message)s', datefmt='%H:%M:%S')

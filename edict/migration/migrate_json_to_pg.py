@@ -35,27 +35,27 @@ log = logging.getLogger("migrate")
 
 # 旧版状态 → Edict TaskState
 STATE_MAP = {
-    "Taizi": TaskState.TAIZI,
-    "Zhongshu": TaskState.ZHONGSHU,
-    "Menxia": TaskState.MENXIA,
-    "Assigned": TaskState.ASSIGNED,
-    "Next": TaskState.NEXT,
-    "Doing": TaskState.DOING,
-    "Review": TaskState.REVIEW,
-    "Done": TaskState.DONE,
-    "Blocked": TaskState.BLOCKED,
-    "Cancelled": TaskState.CANCELLED,
-    "Pending": TaskState.PENDING,
+    "Taizi": TaskState.Taizi,
+    "Zhongshu": TaskState.Zhongshu,
+    "Menxia": TaskState.Menxia,
+    "Assigned": TaskState.Assigned,
+    "Next": TaskState.Next,
+    "Doing": TaskState.Doing,
+    "Review": TaskState.Review,
+    "Done": TaskState.Done,
+    "Blocked": TaskState.Blocked,
+    "Cancelled": TaskState.Cancelled,
+    "Pending": TaskState.Pending,
     # Fallbacks
-    "Inbox": TaskState.TAIZI,
-    "": TaskState.TAIZI,
+    "Inbox": TaskState.Taizi,
+    "": TaskState.Taizi,
 }
 
 
 def parse_old_task(old: dict) -> dict:
     """将旧版 task JSON 转换为 Edict Task 参数。"""
     state_str = old.get("state", "Taizi")
-    state = STATE_MAP.get(state_str, TaskState.TAIZI)
+    state = STATE_MAP.get(state_str, TaskState.Taizi)
 
     legacy_id = old.get("id", "")
     title = old.get("title", "未命名任务")
@@ -72,7 +72,7 @@ def parse_old_task(old: dict) -> dict:
         "title": title,
         "description": old.get("now", ""),
         "priority": "中",
-        "state": state,
+        "state": state.value,  # 存储为字符串
         "assignee_org": old.get("org", None),
         "creator": old.get("official", "emperor"),
         "tags": [legacy_id] if legacy_id else [],
@@ -118,7 +118,7 @@ async def migrate(file_path: Path, dry_run: bool = False):
         log.info("=== DRY RUN 模式，不写入数据库 ===")
         for old in old_tasks:
             params = parse_old_task(old)
-            log.info(f"  [{params['meta']['legacy_id']}] {params['title'][:40]} → {params['state'].value}")
+            log.info(f"  [{params['meta']['legacy_id']}] {params['title'][:40]} → {params['state']}")
         log.info(f"Dry run 完成: {stats['total']} 个任务待迁移")
         return
 
@@ -142,7 +142,7 @@ async def migrate(file_path: Path, dry_run: bool = False):
                 task = Task(**params)
                 db.add(task)
                 stats["migrated"] += 1
-                log.info(f"✅ 迁移: [{legacy_id}] {params['title'][:40]} → {params['state'].value}")
+                log.info(f"✅ 迁移: [{legacy_id}] {params['title'][:40]} → {params['state']}")
 
             except Exception as e:
                 log.error(f"❌ 迁移失败: {old.get('id', '?')}: {e}")

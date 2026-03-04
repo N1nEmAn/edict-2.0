@@ -68,7 +68,7 @@ async def legacy_transition(
 
     try:
         t = await svc.transition_state(task.task_id, new_state, body.agent, body.reason)
-        return {"task_id": str(t.task_id), "state": t.state.value}
+        return {"task_id": str(t.task_id), "state": t.state}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
